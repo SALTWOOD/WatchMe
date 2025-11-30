@@ -1,0 +1,52 @@
+import { Hono } from "hono";
+import { Config } from "./config.js";
+import { serve } from "@hono/node-server";
+import { createServer as createHttpsServer } from "node:https";
+import { readFile } from "node:fs/promises";
+import { createServer as createHttpServer } from "node:http";
+import { DataSource } from "typeorm";
+import { Device } from "./types/device.js";
+import { ReturnMessage } from "./types/return-message.js";
+import { initRoutes } from "./http/routes.js";
+
+const app = new Hono();
+
+// 初始化服务器
+const serveOptions = {
+    fetch: app.fetch,
+    port: Config.instance.server.port,
+    hostname: Config.instance.server.host
+};
+let server;
+// 是否启用 SSL
+if (Config.instance.server.ssl.enabled) {
+    server = serve({
+        ...serveOptions,
+        createServer: createHttpsServer,
+        serverOptions: {
+            key: await readFile(Config.instance.server.ssl.key),
+            cert: await readFile(Config.instance.server.ssl.cert)
+        }
+    });
+} else {
+    server = serve({
+        ...serveOptions,
+        createServer: createHttpServer,
+    });
+}
+
+const db = new DataSource({
+    type: Config.instance.database.type as any,
+    host: Config.instance.database.host,
+    port: Config.instance.database.port,
+    username: Config.instance.database.username,
+    password: Config.instance.database.password,
+    database: Config.instance.database.database,
+    entities: [Device],
+    synchronize: Config.instance.database.synchronize
+});
+
+initRoutes({
+    hono: app,
+    db
+});

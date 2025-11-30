@@ -1,0 +1,23 @@
+# WebStorm-specific files
+.idea
+
+# Node.js and npm
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnp/
+.pnp.js
+
+# Build artifacts
+dist/
+build/
+coverage/
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
