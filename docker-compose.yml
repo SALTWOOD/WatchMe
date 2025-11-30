@@ -1,0 +1,8 @@
+services:
+  watchme:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    # ports:
+    #   - "80:3000"
+    env_file: .env
