@@ -31,7 +31,7 @@ const db = new DataSource({
 
 await db.initialize();
 
-app.use("*", cors(JSON.parse(Config.instance.server.cors)));
+app.use(cors(JSON.parse(Config.instance.server.cors)));
 
 initRoutes({
     hono: app,
