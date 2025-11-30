@@ -79,7 +79,16 @@ export function initRoutes(config: ServerData) {
         if (!DeviceStatus[body.status])
             throw AppError.quick(ErrorType.FIELD_OUT_OF_RANGE, "status");
 
-        return quick(c, updateHeartbeat(manager, device.id, body.status === DeviceStatus.Online));
+        return quick(c, [
+            await manager.update(Device, device.id, {
+                status: body.status,
+            }),
+            await updateHeartbeat(
+                manager,
+                device.id,
+                device.status === DeviceStatus.Online
+            )
+        ]);
     });
 
     base.post("/heartbeat", async (c) => {
@@ -100,8 +109,16 @@ export function initRoutes(config: ServerData) {
         if (typeof body.message !== "string")
             throw AppError.quick(ErrorType.FIELD_TYPE_INVALID, "message");
 
-        return quick(c, updateHeartbeat(manager, device.id, device.status === DeviceStatus.Online));
-
+        return quick(c, [
+            await manager.update(Device, device.id, {
+                message: body.message
+            }),
+            await updateHeartbeat(
+                manager,
+                device.id,
+                device.status === DeviceStatus.Online
+            )
+        ]);
     });
 
     base.get("/status", async (c) => {
