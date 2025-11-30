@@ -22,4 +22,5 @@ coverage/
 *.bak
 *.swp
 
+docker-compose.yml
 .env
