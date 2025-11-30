@@ -36,4 +36,9 @@ export class Config {
         database: env.get('DB_DATABASE').default('watchme').asString(),
         synchronize: env.get('DB_SYNCHRONIZE').default(0).asBool()
     };
+
+    public readonly logging = {
+        enabled: env.get('LOGGING_ENABLED').default(1).asBool(),
+        colorful: env.get('LOGGING_COLORFUL').default(0).asBool(),
+    };
 }
