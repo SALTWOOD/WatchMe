@@ -107,7 +107,9 @@ export function initRoutes(config: ServerData) {
     });
 
     base.get("/status", async (c) => {
-        const result = await manager.find(Device);
+        // avoid token leak
+        const result = (await manager.find(Device))
+            .map(({token, ...rest}) => rest);
         return quick(c, result);
     });
 }
