@@ -21,3 +21,5 @@ coverage/
 *.tmp
 *.bak
 *.swp
+
+.env
