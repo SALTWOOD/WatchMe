@@ -19,6 +19,9 @@ export class AppError extends Error {
                 return new this(`Bad request: invalid type for "${data}"`, 400);
             case ErrorType.FIELD_OUT_OF_RANGE:
                 return new this(`Bad request: "${data}" out of range`, 400);
+            case ErrorType.UNAUTHORIZED:
+                const message = data ? `Unauthorized: ${data}` : "Unauthorized";
+                return new this(message);
         }
     }
 }

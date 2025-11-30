@@ -6,9 +6,24 @@ import { Device } from "../types/device.js";
 import { ErrorType } from "../types/error-type.js";
 import { DeviceStatus } from "../types/device-status.js";
 import { Context } from "hono";
+import { EntityManager } from "typeorm";
 
 const quick = (c: Context, data: any = null, code: ContentfulStatusCode = 200, message = ReturnMessage.SUCCESS) =>
     c.json({message, code, data, error: null}, code);
+
+async function tryGetDevice(c: Context, manager: EntityManager): Promise<Device> {
+    const token = c.req.query("token");
+    if (!token)
+        throw AppError.quick(ErrorType.UNAUTHORIZED);
+
+    const device = await manager.findOne(Device, {
+        where: {token}
+    });
+
+    if (!device) throw new AppError("Unable to find device", 404);
+
+    return device;
+}
 
 export function initRoutes(config: ServerData) {
     const app = config.hono;
@@ -38,10 +53,7 @@ export function initRoutes(config: ServerData) {
     const base = app.basePath("/api/v1");
 
     base.post("/status", async (c) => {
-        const device = await manager.findOne(Device, {
-            where: {token: c.req.query("token")}
-        });
-        if (!device) throw new AppError("Unable to find device", 404);
+        const device = await tryGetDevice(c, manager);
 
         const body: { status: any } = await c.req.json();
 
@@ -67,10 +79,7 @@ export function initRoutes(config: ServerData) {
     });
 
     base.post("/heartbeat", async (c) => {
-        const device = await manager.findOne(Device, {
-            where: {token: c.req.query("token")}
-        });
-        if (!device) throw new AppError("Unable to find device", 404);
+        const device = await tryGetDevice(c, manager);
 
         const result = await manager.update(Device, device.id, {
             lastUpdatedAt: new Date(),
@@ -79,10 +88,7 @@ export function initRoutes(config: ServerData) {
     });
 
     base.post("/message", async (c) => {
-        const device = await manager.findOne(Device, {
-            where: {token: c.req.query("token")}
-        });
-        if (!device) throw new AppError("Unable to find device", 404);
+        const device = await tryGetDevice(c, manager);
 
         const body: { message: any } = await c.req.json();
 
