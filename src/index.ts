@@ -28,6 +28,8 @@ const db = new DataSource({
     synchronize: Config.instance.database.synchronize
 });
 
+await db.initialize();
+
 initRoutes({
     hono: app,
     db
