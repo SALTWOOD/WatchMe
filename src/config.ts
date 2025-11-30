@@ -2,19 +2,6 @@ import dotenv from 'dotenv';
 import env from 'env-var';
 
 export class Config {
-    private static _instance: Config;
-
-    private constructor() {
-        dotenv.config();
-    }
-
-    public static get instance(): Config {
-        if (!Config._instance) {
-            Config._instance = new Config();
-        }
-        return Config._instance;
-    }
-
     public readonly server = {
         host: env.get('HOST').default('').asString(),
         port: env.get('PORT').default(3000).asPortNumber(),
@@ -26,7 +13,6 @@ export class Config {
             cert: env.get('SSL_CERT_FILE').default('').asString()
         }
     };
-
     public readonly database = {
         type: env.get('DB_TYPE').default('postgres').asString(),
         host: env.get('DB_HOST').default('localhost').asString(),
@@ -36,9 +22,21 @@ export class Config {
         database: env.get('DB_DATABASE').default('watchme').asString(),
         synchronize: env.get('DB_SYNCHRONIZE').default(0).asBool()
     };
-
     public readonly logging = {
         enabled: env.get('LOGGING_ENABLED').default(1).asBool(),
         colorful: env.get('LOGGING_COLORFUL').default(0).asBool(),
     };
+
+    private constructor() {
+        dotenv.config();
+    }
+
+    private static _instance: Config;
+
+    public static get instance(): Config {
+        if (!Config._instance) {
+            Config._instance = new Config();
+        }
+        return Config._instance;
+    }
 }

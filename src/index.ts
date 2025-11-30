@@ -77,10 +77,9 @@ initRoutes({
     db
 });
 
-let server;
 // 是否启用 SSL
 if (Config.instance.server.ssl.enabled) {
-    server = serve({
+    serve({
         ...serveOptions,
         createServer: createHttpsServer,
         serverOptions: {
@@ -89,7 +88,7 @@ if (Config.instance.server.ssl.enabled) {
         }
     });
 } else {
-    server = serve({
+    serve({
         ...serveOptions,
         createServer: createHttpServer,
     });
