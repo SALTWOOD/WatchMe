@@ -16,6 +16,23 @@ const serveOptions = {
     port: Config.instance.server.port,
     hostname: Config.instance.server.host
 };
+
+const db = new DataSource({
+    type: Config.instance.database.type as any,
+    host: Config.instance.database.host,
+    port: Config.instance.database.port,
+    username: Config.instance.database.username,
+    password: Config.instance.database.password,
+    database: Config.instance.database.database,
+    entities: [Device],
+    synchronize: Config.instance.database.synchronize
+});
+
+initRoutes({
+    hono: app,
+    db
+});
+
 let server;
 // 是否启用 SSL
 if (Config.instance.server.ssl.enabled) {
@@ -33,19 +50,3 @@ if (Config.instance.server.ssl.enabled) {
         createServer: createHttpServer,
     });
 }
-
-const db = new DataSource({
-    type: Config.instance.database.type as any,
-    host: Config.instance.database.host,
-    port: Config.instance.database.port,
-    username: Config.instance.database.username,
-    password: Config.instance.database.password,
-    database: Config.instance.database.database,
-    entities: [Device],
-    synchronize: Config.instance.database.synchronize
-});
-
-initRoutes({
-    hono: app,
-    db
-});
