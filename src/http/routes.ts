@@ -43,7 +43,7 @@ export function initRoutes(config: ServerData) {
         });
         if (!device) throw new AppError("Unable to find device", 404);
 
-        const body: { status: any } = await c.req.parseBody();
+        const body: { status: any } = await c.req.json();
 
         // Check types
         if (!body || body.status === undefined)
@@ -84,7 +84,7 @@ export function initRoutes(config: ServerData) {
         });
         if (!device) throw new AppError("Unable to find device", 404);
 
-        const body: { message: any } = await c.req.parseBody();
+        const body: { message: any } = await c.req.json();
 
         // Check types
         if (!body || body.message === undefined)
