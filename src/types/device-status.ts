@@ -1,4 +1,4 @@
 export enum DeviceStatus {
-    Online,
     Offline,
+    Online,
 }
