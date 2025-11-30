@@ -18,6 +18,7 @@ export class Config {
     public readonly server = {
         host: env.get('HOST').default('').asString(),
         port: env.get('PORT').default(3000).asPortNumber(),
+        cors: env.get('CORS').default('{}').asString(),
 
         ssl: {
             enabled: env.get('SSL_ENABLED').default(0).asBool(),

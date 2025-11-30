@@ -7,6 +7,7 @@ import { createServer as createHttpServer } from "node:http";
 import { DataSource } from "typeorm";
 import { Device } from "./types/device.js";
 import { initRoutes } from "./http/routes.js";
+import { cors } from "hono/cors";
 
 const app = new Hono();
 
@@ -29,6 +30,8 @@ const db = new DataSource({
 });
 
 await db.initialize();
+
+app.use("*", cors(JSON.parse(Config.instance.server.cors)));
 
 initRoutes({
     hono: app,
