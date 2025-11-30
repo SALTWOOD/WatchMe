@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import { Config } from "./config.js";
-import { serve } from "@hono/node-server";
+import { serve, ServerType } from "@hono/node-server";
 import { createServer as createHttpsServer } from "node:https";
 import { readFile } from "node:fs/promises";
 import { createServer as createHttpServer } from "node:http";
@@ -42,9 +42,10 @@ initRoutes({
     db
 });
 
+let server: ServerType;
 // 是否启用 SSL
 if (Config.instance.server.ssl.enabled) {
-    serve({
+    server = serve({
         ...serveOptions,
         createServer: createHttpsServer,
         serverOptions: {
@@ -53,8 +54,15 @@ if (Config.instance.server.ssl.enabled) {
         }
     });
 } else {
-    serve({
+    server = serve({
         ...serveOptions,
         createServer: createHttpServer,
     });
 }
+
+function stop() {
+    server.close();
+}
+
+process.on("SIGINT", stop);
+process.on("SIGTERM", stop);
