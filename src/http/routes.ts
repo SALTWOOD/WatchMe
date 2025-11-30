@@ -6,7 +6,7 @@ import { Device } from "../types/device.js";
 import { ErrorType } from "../types/error-type.js";
 import { DeviceStatus } from "../types/device-status.js";
 import { Context } from "hono";
-import { EntityManager } from "typeorm";
+import { EntityManager, UpdateResult } from "typeorm";
 
 const quick = (c: Context, data: any = null, code: ContentfulStatusCode = 200, message = ReturnMessage.SUCCESS) =>
     c.json({message, code, data, error: null}, code);
@@ -23,6 +23,14 @@ async function tryGetDevice(c: Context, manager: EntityManager): Promise<Device>
     if (!device) throw new AppError("Unable to find device", 404);
 
     return device;
+}
+
+async function updateHeartbeat(manager: EntityManager, id: number, isOnline: boolean = false): Promise<UpdateResult> {
+    const now = new Date();
+    return await manager.update(Device, id, {
+        lastUpdatedAt: now,
+        lastOnline: isOnline ? now : undefined
+    });
 }
 
 export function initRoutes(config: ServerData) {
@@ -71,20 +79,13 @@ export function initRoutes(config: ServerData) {
         if (!DeviceStatus[body.status])
             throw AppError.quick(ErrorType.FIELD_OUT_OF_RANGE, "status");
 
-        const result = await manager.update(Device, device.id, {
-            lastUpdatedAt: new Date(),
-            status: body.status,
-        });
-        return quick(c, result);
+        return quick(c, updateHeartbeat(manager, device.id, body.status === DeviceStatus.Online));
     });
 
     base.post("/heartbeat", async (c) => {
         const device = await tryGetDevice(c, manager);
 
-        const result = await manager.update(Device, device.id, {
-            lastUpdatedAt: new Date(),
-        });
-        return quick(c, result);
+        return quick(c, updateHeartbeat(manager, device.id, device.status === DeviceStatus.Online));
     });
 
     base.post("/message", async (c) => {
@@ -99,11 +100,8 @@ export function initRoutes(config: ServerData) {
         if (typeof body.message !== "string")
             throw AppError.quick(ErrorType.FIELD_TYPE_INVALID, "message");
 
-        const result = await manager.update(Device, device.id, {
-            lastUpdatedAt: new Date(),
-            message: body.message,
-        });
-        return quick(c, result);
+        return quick(c, updateHeartbeat(manager, device.id, device.status === DeviceStatus.Online));
+
     });
 
     base.get("/status", async (c) => {

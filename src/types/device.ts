@@ -16,6 +16,9 @@ export class Device {
     public lastUpdatedAt!: Date;
 
     @Column()
+    public lastOnline!: Date;
+
+    @Column()
     public status!: DeviceStatus;
 
     @Column()
