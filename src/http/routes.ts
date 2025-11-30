@@ -91,6 +91,14 @@ export function initRoutes(config: ServerData) {
         ]);
     });
 
+    base.get("/status", async (c) => {
+        // avoid token leak
+        const result = (await manager.find(Device))
+            .map(({token, ...rest}) => rest)
+            .sort((a, b) => a.id - b.id);
+        return quick(c, result);
+    });
+
     base.post("/heartbeat", async (c) => {
         const device = await tryGetDevice(c, manager);
 
@@ -119,12 +127,5 @@ export function initRoutes(config: ServerData) {
                 device.status === DeviceStatus.Online
             )
         ]);
-    });
-
-    base.get("/status", async (c) => {
-        // avoid token leak
-        const result = (await manager.find(Device))
-            .map(({token, ...rest}) => rest);
-        return quick(c, result);
     });
 }
