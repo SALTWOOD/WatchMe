@@ -1,7 +1,7 @@
-# 使用Alpine Linux作为基础镜像
+# 使用 Alpine Linux 作为基础镜像
 FROM alpine:latest
 
-# 更改apk软件源为清华大学镜像并更新软件包
+# 更改 apk 软件源为清华大学镜像并更新软件包
 # RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.tuna.tsinghua.edu.cn/g' /etc/apk/repositories
 RUN apk update && \
     apk add --no-cache \
@@ -20,11 +20,10 @@ WORKDIR /app
 COPY . .
 
 RUN rm -rf node_modules && \
-    rm -rf dist && \
-    npm install
+    rm -rf dist
 
-# 安装TypeScript以及其他依赖包
-RUN npm install -g typescript && npm install && npm run build
+# 安装 TypeScript 以及其他依赖包
+RUN npm install && npm run build
 
 # 启动应用程序
 CMD ["node", "--enable-source-maps", "dist/index.js"]
