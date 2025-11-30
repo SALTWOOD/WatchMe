@@ -43,6 +43,14 @@ initRoutes({
 });
 
 let server: ServerType;
+
+function stop() {
+    server.close();
+}
+
+process.on("SIGINT", stop);
+process.on("SIGTERM", stop);
+
 // 是否启用 SSL
 if (Config.instance.server.ssl.enabled) {
     server = serve({
@@ -59,10 +67,3 @@ if (Config.instance.server.ssl.enabled) {
         createServer: createHttpServer,
     });
 }
-
-function stop() {
-    server.close();
-}
-
-process.on("SIGINT", stop);
-process.on("SIGTERM", stop);
