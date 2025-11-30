@@ -16,27 +16,23 @@ export function initRoutes(config: ServerData) {
     const manager = db.manager;
 
     // 当处理程序抛出错误时返回 JSON 响应
-    app.use('*', async (c, next) => {
-        try {
-            await next();
-        } catch (error: any) {
-            const isAppError = error instanceof AppError;
-            const statusCode = isAppError ? error.statusCode : 500;
-            const data = isAppError ? error.data : null;
+    app.onError((error, c) => {
+        const isAppError = error instanceof AppError;
+        const statusCode = isAppError ? error.statusCode : 500;
+        const data = isAppError ? error.data : null;
 
-            if ([101, 204, 205, 304].includes(statusCode)) {
-                return c.status(statusCode);
-            }
-
-            return c.json({
-                message: ReturnMessage.ERROR,
-                data,
-                error: {
-                    message: error.message,
-                    stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
-                },
-            }, statusCode as ContentfulStatusCode); // 上面排除了 ContentlessStatusCode，所以直接 as
+        if ([101, 204, 205, 304].includes(statusCode)) {
+            return c.body(null, statusCode);
         }
+
+        return c.json({
+            message: ReturnMessage.ERROR,
+            data,
+            error: {
+                message: error.message,
+                stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
+            },
+        }, statusCode as ContentfulStatusCode); // 上面排除了 ContentlessStatusCode，所以直接 as
     });
 
     const base = app.basePath("/api/v1");
