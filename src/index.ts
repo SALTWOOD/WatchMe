@@ -6,7 +6,6 @@ import { readFile } from "node:fs/promises";
 import { createServer as createHttpServer } from "node:http";
 import { DataSource } from "typeorm";
 import { Device } from "./types/device.js";
-import { ReturnMessage } from "./types/return-message.js";
 import { initRoutes } from "./http/routes.js";
 
 const app = new Hono();
