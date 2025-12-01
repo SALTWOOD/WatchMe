@@ -23,4 +23,7 @@ export class Device {
 
     @Column()
     public message!: string;
+
+    @Column()
+    public ignored!: boolean;
 }
