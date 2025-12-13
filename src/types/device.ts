@@ -1,7 +1,7 @@
 import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
 import { DeviceStatus } from "./device-status.js";
 
-type Battery = {
+export type Battery = {
     power: number; // 0 <= power <= 100
     charging: boolean | null;
 }

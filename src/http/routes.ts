@@ -2,7 +2,7 @@ import { ReturnMessage } from "../types/return-message.js";
 import { ServerData } from "../types/server-data.js";
 import { ContentfulStatusCode } from "hono/utils/http-status";
 import { AppError } from "../types/app-error.js";
-import { Device } from "../types/device.js";
+import { Battery, Device } from "../types/device.js";
 import { ErrorType } from "../types/error-type.js";
 import { DeviceStatus } from "../types/device-status.js";
 import { Context } from "hono";
@@ -66,7 +66,9 @@ export function initRoutes(config: ServerData) {
         const body: { status: any } = await c.req.json();
 
         // Check types
-        if (!body || body.status === undefined)
+        if (!body)
+            throw AppError.quick(ErrorType.FIELD_NOT_FOUND);
+        if (body.status === undefined)
             throw AppError.quick(ErrorType.FIELD_NOT_FOUND, "status")
 
         if (typeof body.status === "boolean")
@@ -102,7 +104,32 @@ export function initRoutes(config: ServerData) {
     base.post("/heartbeat", async (c) => {
         const device = await tryGetDevice(c, manager);
 
-        return quick(c, updateHeartbeat(manager, device.id, device.status === DeviceStatus.Online));
+        if (!await c.req.text()) {
+            const body: { battery: Battery | null } = await c.req.json();
+            await manager.update(Device, device.id, {
+                battery: {
+                    power: body.battery?.power ?? 0,
+                    charging: body.battery?.charging ?? false,
+                }
+            });
+        }
+
+        return quick(c, await updateHeartbeat(manager, device.id, device.status === DeviceStatus.Online));
+    });
+
+    base.post("/battery", async (c) => {
+        const device = await tryGetDevice(c, manager);
+        const body: { battery: Battery | null } = await c.req.json();
+
+        return quick(c, [
+            await manager.update(Device, device.id, {
+                battery: {
+                    power: body.battery?.power ?? 0,
+                    charging: body.battery?.charging ?? false,
+                }
+            }),
+            await updateHeartbeat(manager, device.id, device.status === DeviceStatus.Online)
+        ]);
     });
 
     base.post("/message", async (c) => {

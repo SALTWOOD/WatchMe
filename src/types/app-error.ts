@@ -16,6 +16,8 @@ export class AppError extends Error {
             case ErrorType.FIELD_NOT_FOUND:
                 return new this(`Bad request: missing "${data}" field`, 400);
             case ErrorType.FIELD_TYPE_INVALID:
+                if (!data)
+                    return new AppError("Bad request: invalid body", 400);
                 return new this(`Bad request: invalid type for "${data}"`, 400);
             case ErrorType.FIELD_OUT_OF_RANGE:
                 return new this(`Bad request: "${data}" out of range`, 400);
