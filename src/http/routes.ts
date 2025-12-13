@@ -104,16 +104,6 @@ export function initRoutes(config: ServerData) {
     base.post("/heartbeat", async (c) => {
         const device = await tryGetDevice(c, manager);
 
-        if (!await c.req.text()) {
-            const body: { battery: Battery | null } = await c.req.json();
-            await manager.update(Device, device.id, {
-                battery: {
-                    power: body.battery?.power ?? 0,
-                    charging: body.battery?.charging ?? false,
-                }
-            });
-        }
-
         return quick(c, await updateHeartbeat(manager, device.id, device.status === DeviceStatus.Online));
     });
 
