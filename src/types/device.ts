@@ -1,6 +1,11 @@
 import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
 import { DeviceStatus } from "./device-status.js";
 
+type Battery = {
+    power: number; // 0 <= power <= 100
+    charging: boolean | null;
+}
+
 @Entity()
 export class Device {
     @PrimaryGeneratedColumn()
@@ -12,10 +17,14 @@ export class Device {
     @Column()
     public token!: string;
 
-    @Column()
+    @Column({
+        type: "timestamp",
+    })
     public lastUpdatedAt!: Date;
 
-    @Column()
+    @Column({
+        type: "timestamp",
+    })
     public lastOnline!: Date;
 
     @Column()
@@ -24,6 +33,14 @@ export class Device {
     @Column()
     public message!: string;
 
-    @Column()
+    @Column({
+        default: false,
+    })
     public ignored!: boolean;
+
+    @Column({
+        type: 'jsonb',
+        nullable: true,
+    })
+    public battery!: Battery | null;
 }
