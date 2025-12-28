@@ -9,7 +9,7 @@ import { Context } from "hono";
 import { EntityManager, UpdateResult } from "typeorm";
 
 const quick = (c: Context, data: any = null, code: ContentfulStatusCode = 200, message = ReturnMessage.SUCCESS) =>
-    c.json({message, code, data, error: null}, code);
+    c.json({success: true, message, code, data, error: null}, code);
 
 async function tryGetDevice(c: Context, manager: EntityManager): Promise<Device> {
     const token = c.req.query("token");
@@ -49,6 +49,7 @@ export function initRoutes(config: ServerData) {
         }
 
         return c.json({
+            success: false,
             message: ReturnMessage.ERROR,
             data,
             error: {
@@ -81,16 +82,15 @@ export function initRoutes(config: ServerData) {
         if (!DeviceStatus[body.status])
             throw AppError.quick(ErrorType.FIELD_OUT_OF_RANGE, "status");
 
-        return quick(c, [
-            await manager.update(Device, device.id, {
-                status: body.status,
-            }),
-            await updateHeartbeat(
-                manager,
-                device.id,
-                device.status === DeviceStatus.Online
-            )
-        ]);
+        await manager.update(Device, device.id, {
+            status: body.status,
+        });
+        await updateHeartbeat(
+            manager,
+            device.id,
+            device.status === DeviceStatus.Online
+        );
+        return quick(c, device.id);
     });
 
     base.get("/status", async (c) => {
@@ -104,22 +104,28 @@ export function initRoutes(config: ServerData) {
     base.post("/heartbeat", async (c) => {
         const device = await tryGetDevice(c, manager);
 
-        return quick(c, await updateHeartbeat(manager, device.id, device.status === DeviceStatus.Online));
+        await updateHeartbeat(manager, device.id, device.status === DeviceStatus.Online);
+        return quick(c, null);
     });
 
     base.post("/battery", async (c) => {
         const device = await tryGetDevice(c, manager);
-        const body: { battery: Battery | null } = await c.req.json();
+        const body: { battery: Battery | null | undefined } = await c.req.json();
 
-        return quick(c, [
+        if (!body?.battery) {
+            await manager.update(Device, device.id, {
+                battery: null
+            });
+        } else {
             await manager.update(Device, device.id, {
                 battery: {
-                    power: body.battery?.power ?? 0,
-                    charging: body.battery?.charging ?? false,
+                    power: body.battery.power,
+                    charging: body.battery.charging,
                 }
-            }),
-            await updateHeartbeat(manager, device.id, device.status === DeviceStatus.Online)
-        ]);
+            });
+        }
+        await updateHeartbeat(manager, device.id, device.status === DeviceStatus.Online);
+        return quick(c, null);
     });
 
     base.post("/message", async (c) => {
@@ -134,15 +140,14 @@ export function initRoutes(config: ServerData) {
         if (typeof body.message !== "string")
             throw AppError.quick(ErrorType.FIELD_TYPE_INVALID, "message");
 
-        return quick(c, [
-            await manager.update(Device, device.id, {
-                message: body.message
-            }),
-            await updateHeartbeat(
-                manager,
-                device.id,
-                device.status === DeviceStatus.Online
-            )
-        ]);
+        await manager.update(Device, device.id, {
+            message: body.message
+        });
+        await updateHeartbeat(
+            manager,
+            device.id,
+            device.status === DeviceStatus.Online
+        );
+        return quick(c, null);
     });
 }
